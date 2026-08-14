@@ -1,12 +1,14 @@
 import React, { useState } from "react";
-import { INITIATIVES, MINISTRIES, NAV, flag, l1Of, l2Of, rangeFactor } from "./data.js";
-import { C, Bar, InfoButton, DateRange } from "./ui.jsx";
+import { INITIATIVES, MINISTRIES, NAV, l1Of, rangeFactor } from "./data.js";
+import { C, Bar, InfoButton, DateRange, DetailDrawer } from "./ui.jsx";
 
 /* Consolidated Delhi NCR summary: one card per initiative, grouped by ministry.
-   Process opens the L1 + all-stages L2 popup with a state selector. */
+   Clicking a card opens that initiative's process view. */
 export default function Summary({ onNavigate }) {
   const [range, setRange] = useState({ from: "2026-02-01", to: "2026-08-11" });
   const [menu, setMenu] = useState(null);
+  const [detail, setDetail] = useState(null);
+  const [hoveredCard, setHoveredCard] = useState(null);
 
   const rf = rangeFactor(range.from, range.to).factor;
 
@@ -62,49 +64,47 @@ export default function Summary({ onNavigate }) {
             <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0,1fr))", gap: 18 }}>
               {INITIATIVES.filter((i) => i.ministry === m.key).map((i) => {
                 const ks = l1Of(i, "All-Delhi NCR", rf, null, true);
-                const bands = l2Of(i, "All-Delhi NCR", rf, null, true).filter((x) => !x.rate && x.den > 0).map((x) => x.raw);
-                const delays = bands.filter((p) => p < 50).length;
-                const watch = bands.filter((p) => p >= 50 && p < 75).length;
+                const isHovered = hoveredCard === i.key;
                 return (
-                  <article key={i.key} data-card style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: 6, display: "flex", flexDirection: "column" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "14px 16px", borderBottom: `1px solid ${C.line2}` }}>
-                      <span style={{ padding: "6px 14px", background: C.blue, color: "#fff", borderRadius: 5, fontSize: 14, fontWeight: 700 }}>{i.name}</span>
+                  <article key={i.key} data-card
+                    onClick={() => onNavigate(i.key, "All-Delhi NCR")}
+                    onMouseEnter={() => setHoveredCard(i.key)}
+                    onMouseLeave={() => setHoveredCard(null)}
+                    style={{
+                      background: "#fff",
+                      border: `1.5px solid ${isHovered ? C.blue : "#CBD5E1"}`,
+                      borderRadius: 6,
+                      display: "flex",
+                      flexDirection: "column",
+                      cursor: "pointer",
+                      boxShadow: isHovered ? "0 8px 22px rgba(29,63,134,.16)" : "0 2px 6px rgba(0,0,0,.06)",
+                      transform: isHovered ? "translateY(-2px)" : "none",
+                      transition: "all 0.15s ease",
+                      overflow: "hidden"
+                    }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderBottom: `1px solid ${C.line2}`, background: isHovered ? C.blueWash : "#fff", transition: "background 0.15s ease" }}>
+                      <span style={{ padding: "4px 12px", background: C.blue, color: "#fff", borderRadius: 4, fontSize: 13.5, fontWeight: 700 }}>{i.name}</span>
                       {i.note && (
-                        <span style={{ padding: "4px 10px", border: "1px solid #D2D2CA", background: C.paper, borderRadius: 4,
-                          fontSize: 11.5, fontWeight: 700, color: C.mute }}>{i.note}</span>
+                        <span style={{ padding: "3px 8px", border: "1px solid #D2D2CA", background: C.paper, borderRadius: 4,
+                          fontSize: 11, fontWeight: 700, color: C.mute }}>{i.note}</span>
                       )}
                       <div style={{ flex: 1 }} />
                       <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: ".08em", color: C.faint }}>{i.owner}</span>
+                      <span style={{ fontSize: 14, color: C.blue, fontWeight: 700, marginLeft: 4 }}>›</span>
                     </div>
-                    {ks.map((k) => (
-                      <div key={k.id} style={{ padding: "15px 16px", borderBottom: `1px solid ${C.line2}` }}>
+                    {ks.map((k, idx) => (
+                      <div key={k.id} style={{ padding: "10px 14px", borderBottom: idx < ks.length - 1 ? `1px solid ${C.line2}` : "none" }}>
                         <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-                          <div style={{ fontSize: 13, color: "#5A5C5E", lineHeight: 1.35, flex: 1, textWrap: "pretty" }}>{k.name}</div>
-                          <InfoButton onClick={() => onNavigate(i.key, "All-Delhi NCR")} />
+                          <div style={{ fontSize: 12.5, color: "#5A5C5E", lineHeight: 1.3, flex: 1, textWrap: "pretty", fontWeight: 600 }}>{k.name}</div>
+                          <InfoButton onClick={(e) => { e.stopPropagation(); setDetail(k); }} />
                         </div>
-                        <div style={{ fontSize: 20, fontWeight: 800, color: C.ink, marginTop: 5 }}>{k.frac}</div>
-                        <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
-                          <Bar view={k} />
+                        <div style={{ fontSize: 18, fontWeight: 800, color: C.ink, marginTop: 3, fontFamily: "'Source Code Pro', monospace" }}>{k.frac}</div>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 5 }}>
+                          <Bar view={k} height={7} />
                           <span style={{ fontSize: 11, fontWeight: 700, fontFamily: "'Source Code Pro', monospace", color: "#5A5C5E" }}>{k.pct}</span>
                         </div>
                       </div>
                     ))}
-                    <div style={{ flex: 1 }} />
-                    <div style={{ padding: "14px 16px" }}>
-                      <button type="button" onClick={() => onNavigate(i.key, "All-Delhi NCR")}
-                        style={{ display: "flex", alignItems: "center", gap: 9, width: "100%", padding: "10px 12px", background: "#fff",
-                          border: `1px solid ${C.blueLine}`, borderRadius: 5, fontFamily: "inherit", fontSize: 13, fontWeight: 600,
-                          color: C.blue, cursor: "pointer", textAlign: "left" }}>
-                        <span style={{ width: 8, height: 8, borderRadius: "50%", flex: "none",
-                          background: bands.length ? flag(Math.min(...bands)) : "#C4C4BE" }} />
-                        <span>Process</span>
-                        <span style={{ fontSize: 12, color: C.mute, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                          · {!bands.length ? "no L2 metric yet" : delays ? `${delays} delayed` : watch ? `${watch} to watch` : "all on track"}
-                        </span>
-                        <div style={{ flex: 1 }} />
-                        <span>›</span>
-                      </button>
-                    </div>
                   </article>
                 );
               })}
@@ -113,6 +113,7 @@ export default function Summary({ onNavigate }) {
         ))}
       </div>
 
+      {detail && <DetailDrawer detail={detail} onClose={() => setDetail(null)} fixed />}
     </div>
   );
 }
