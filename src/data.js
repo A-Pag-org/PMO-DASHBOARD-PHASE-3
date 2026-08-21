@@ -330,6 +330,7 @@ export const MINISTRIES = [
 
 export const NAV = [
   { key: "summary", label: "All initiatives — Summary" },
+  { key: "air-quality", label: "Air Pollution & Outcomes" },
   { key: "parivartan", label: "PARIVARTAN" },
   { key: "green-contribution", label: "Green Contribution" },
   { key: "mrs", label: "Mechanized Road Sweeping" },

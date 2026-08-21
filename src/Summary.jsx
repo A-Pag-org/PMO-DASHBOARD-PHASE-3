@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { INITIATIVES, MINISTRIES, NAV, l1Of, rangeFactor } from "./data.js";
 import { C, Bar, InfoButton, DateRange, DetailDrawer } from "./ui.jsx";
+import AirQualityPill from "./AirQualityPill.jsx";
 
 /* Consolidated Delhi NCR summary: one card per initiative, grouped by ministry.
    Clicking a card opens that initiative's process view. */
@@ -14,11 +15,27 @@ export default function Summary({ onNavigate }) {
 
   return (
     <div style={{ minHeight: "100vh", background: C.paper, fontFamily: "'Source Sans 3', system-ui, sans-serif", color: C.body }}>
-      <header style={{ display: "flex", alignItems: "center", gap: 18, padding: "12px 24px", background: "#fff",
+      <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 24px", background: "#fff",
         borderBottom: `1px solid ${C.line}`, position: "sticky", top: 0, zIndex: 40 }}>
-        <img src="/emblem.png" alt="Government of India" style={{ width: 38, height: 38, objectFit: "contain" }} />
-        <div style={{ fontSize: 19, fontWeight: 800, letterSpacing: "-.01em", color: C.blue }}>Delhi NCR Clean Air Dashboard</div>
-        <div style={{ flex: 1 }} />
+        <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
+          <img src="/emblem.png" alt="Government of India" style={{ width: 38, height: 38, objectFit: "contain" }} />
+          <div style={{ fontSize: 19, fontWeight: 800, letterSpacing: "-.01em", color: C.blue, whiteSpace: "nowrap" }}>
+            Delhi NCR Clean Air Dashboard
+          </div>
+        </div>
+        
+        {/* Strictly Centered Air Quality Pill */}
+        <div style={{
+          position: "absolute",
+          left: "50%",
+          top: "50%",
+          transform: "translate(-50%, -50%)",
+          pointerEvents: "auto",
+          zIndex: 2
+        }}>
+          <AirQualityPill onNavigate={onNavigate} currentRegion="All-Delhi NCR" />
+        </div>
+
         <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 16px", border: "1px solid #D8D8D2",
           borderRadius: 6, color: C.blue, fontWeight: 600, fontSize: 14, cursor: "pointer" }}>Sign out</div>
       </header>
@@ -38,7 +55,12 @@ export default function Summary({ onNavigate }) {
               borderRadius: 6, boxShadow: "0 12px 32px rgba(0,0,0,.14)", overflow: "hidden", zIndex: 30 }}>
               {NAV.map((n) => (
                 <button key={n.key} type="button"
-                  onClick={() => { setMenu(null); if (n.key !== "summary") onNavigate(n.key); }}
+                  onClick={() => {
+                    setMenu(null);
+                    if (n.key === "summary") return;
+                    if (n.key === "air-quality") onNavigate("air-quality");
+                    else onNavigate(n.key);
+                  }}
                   style={{ display: "block", width: "100%", textAlign: "left", padding: "11px 15px", border: 0,
                     fontFamily: "inherit", fontSize: 13.5, cursor: "pointer", color: C.ink,
                     background: n.key === "summary" ? C.blueWash : "#fff", fontWeight: n.key === "summary" ? 700 : 400 }}>
@@ -94,6 +116,24 @@ export default function Summary({ onNavigate }) {
                     </div>
                     {ks.map((k, idx) => (
                       <div key={k.id} style={{ padding: "10px 14px", borderBottom: idx < ks.length - 1 ? `1px solid ${C.line2}` : "none" }}>
+                        {k.seg && (
+                          <div style={{ marginBottom: 5 }}>
+                            <span style={{
+                              display: "inline-block",
+                              padding: "2px 8px",
+                              background: "#EEF2F6",
+                              color: "#1D3F86",
+                              border: "1px solid #CBD8E8",
+                              borderRadius: 12,
+                              fontSize: 10.5,
+                              fontWeight: 800,
+                              letterSpacing: ".06em",
+                              textTransform: "uppercase"
+                            }}>
+                              {k.seg}
+                            </span>
+                          </div>
+                        )}
                         <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
                           <div style={{ fontSize: 12.5, color: "#5A5C5E", lineHeight: 1.3, flex: 1, textWrap: "pretty", fontWeight: 600 }}>{k.name}</div>
                           <InfoButton onClick={(e) => { e.stopPropagation(); setDetail(k); }} />

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { NAV, REGIONS, l1Of, l2Of, rangeFactor } from "./data.js";
 import { C, Bar, InfoButton, Dropdown, DateRange, DetailDrawer } from "./ui.jsx";
+import AirQualityPill from "./AirQualityPill.jsx";
 
 const LayersIcon = (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -26,12 +27,28 @@ export default function Comparative({ initiative, onNavigate }) {
   return (
     <div style={{ minHeight: "100vh", background: C.paper, fontFamily: "'Source Sans 3', system-ui, sans-serif", color: C.body }}>
       <header style={{
-        display: "flex", alignItems: "center", gap: 18, padding: "12px 24px", background: "#fff",
+        display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 24px", background: "#fff",
         borderBottom: `1px solid ${C.line}`, position: "sticky", top: 0, zIndex: 40
       }}>
-        <img src="/emblem.png" alt="Government of India" style={{ width: 38, height: 38, objectFit: "contain" }} />
-        <div style={{ fontSize: 19, fontWeight: 800, letterSpacing: "-.01em", color: C.blue }}>Delhi NCR Clean Air Dashboard</div>
-        <div style={{ flex: 1 }} />
+        <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
+          <img src="/emblem.png" alt="Government of India" style={{ width: 38, height: 38, objectFit: "contain" }} />
+          <div style={{ fontSize: 19, fontWeight: 800, letterSpacing: "-.01em", color: C.blue, whiteSpace: "nowrap" }}>
+            Delhi NCR Clean Air Dashboard
+          </div>
+        </div>
+
+        {/* Strictly Centered Air Quality Pill */}
+        <div style={{
+          position: "absolute",
+          left: "50%",
+          top: "50%",
+          transform: "translate(-50%, -50%)",
+          pointerEvents: "auto",
+          zIndex: 2
+        }}>
+          <AirQualityPill onNavigate={onNavigate} currentRegion="All-Delhi NCR" />
+        </div>
+
         <div style={{
           display: "flex", alignItems: "center", gap: 8, padding: "10px 16px", border: "1px solid #D8D8D2",
           borderRadius: 6, color: C.blue, fontWeight: 600, fontSize: 14, cursor: "pointer"
